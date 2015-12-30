@@ -7,6 +7,9 @@ var argv = require('yargs')
     .default('port', 32400).describe('port', 'Port for Plex Web')
     .describe('year', 'Filter media in library section on release year')
     .help('help').alias('help', 'h')
+    .version(function() {
+        return require('./package').version;
+    })
     .strict()
     .argv;
 
