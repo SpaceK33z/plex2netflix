@@ -1,6 +1,6 @@
 {
   "name": "plex2netflix",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "See how much of your media from Plex is available on Netflix.",
   "main": "index.js",
   "bin": "./cli.js",
