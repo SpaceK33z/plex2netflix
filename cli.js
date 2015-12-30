@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 var Plex2Netflix = require('./');
 var argv = require('yargs')
     .demand('section').alias('section', 's').describe('section', 'Library section title from Plex')
