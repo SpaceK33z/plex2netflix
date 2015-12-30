@@ -4,6 +4,8 @@ This simple tool checks how much of your media from Plex is available to watch o
 
 I made this tool because I someday want to make the jump to Netflix, but I want to know beforehand how much of my media is available there.
 
+It works by using the Plex Web API to get a list of all media from given library section. It then compares each title and release year to the [Netflix Roulette API](http://netflixroulette.net/api/).
+
 To install, you need to have [Node.js](https://nodejs.org) installed. Install the tool with the node package manager:
 
 ```
