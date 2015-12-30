@@ -55,19 +55,23 @@ Plex2Netflix.prototype.displaySummary = function (mediaLength, availableCounter)
 Plex2Netflix.prototype.getMediaMetadata = function (mediaUri) {
     return this.plexClient.query(mediaUri).then(function (result) {
         if (result._children && result._children.length) {
+            var firstChild = result._children[0];
             // Try to find the IMDB id in this mess.
             // TODO: Maybe iterate over the children until an IMDb id is found?
-            var guid = result._children[0].guid;
-            var imdb = guid.match(/tt\d{7}/);
-            if (imdb) {
-                return { imdb: imdb[0] };
+            var guid = firstChild.guid;
+            if (guid) {
+                var imdb = guid.match(/tt\d{7}/);
+                if (imdb) {
+                    return { imdb: imdb[0] };
+                }
             }
 
             // If no match to an IMDb ID can be made, fallback to using the title + year.
+            // For TV shows `result.parentTitle` and `result.parentYear` should be used.
             // TODO: The `title` can also contain non-English words. Maybe there is a way to always get the English title?
             return {
-                title: result._children[0].title,
-                year: result._children[0].year
+                title: result.parentTitle || firstChild.title,
+                year: result.parentYear || firstChild.year
             };
         }
     });
