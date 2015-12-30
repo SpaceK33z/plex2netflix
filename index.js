@@ -14,7 +14,6 @@ var defaults = {
 };
 
 function exit(err) {
-    console.log(err);
     console.error(String(err));
     process.exit(1);
 }
@@ -54,7 +53,7 @@ Plex2Netflix.prototype.displaySummary = function (mediaLength, availableCounter)
 }
 
 Plex2Netflix.prototype.getMediaForSection = function (sectionUri) {
-    this.plexClient.query(sectionUri + '/all?year=2010').then(function (result) {
+    this.plexClient.query(sectionUri + '/all').then(function (result) {
         var media = result._children;
         if (!_.isArray(media) || !media.length) {
             exit(new Error('No media found in library section.'));
