@@ -52,6 +52,27 @@ Plex2Netflix.prototype.displaySummary = function (mediaLength, availableCounter)
     console.log('Percent available on netflix:', chalkInfo((Math.round(percent * 100) / 100) + '%'));
 }
 
+Plex2Netflix.prototype.getMediaMetadata = function (mediaUri) {
+    return this.plexClient.query(mediaUri).then(function (result) {
+        if (result._children && result._children.length) {
+            // Try to find the IMDB id in this mess.
+            // TODO: Maybe iterate over the children until an IMDb id is found?
+            var guid = result._children[0].guid;
+            var imdb = guid.match(/tt\d{7}/);
+            if (imdb) {
+                return { imdb: imdb[0] };
+            }
+
+            // If no match to an IMDb ID can be made, fallback to using the title + year.
+            // TODO: The `title` can also contain non-English words. Maybe there is a way to always get the English title?
+            return {
+                title: result._children[0].title,
+                year: result._children[0].year
+            };
+        }
+    });
+}
+
 Plex2Netflix.prototype.getMediaForSection = function (sectionUri) {
     var maybeAddYear = this.options.year ? '?year=' + this.options.year : '';
 
@@ -66,11 +87,10 @@ Plex2Netflix.prototype.getMediaForSection = function (sectionUri) {
 
         console.log('-------');
         Promise.map(media, function (item) {
-            // TODO: The `title` can also contain non-English words. Maybe there is a way to always get the English title?
-            // For even more accuracy we should really use the IMDB id.
-            return netflixRoulette(item.title, item.year)
-                .then(function(data) {
-                    if (data) {
+            return this.getMediaMetadata(item.key)
+                .then(netflixRoulette)
+                .then(function(isAvailable) {
+                    if (isAvailable) {
                         availableCounter += 1;
                         return this.displayMovie(item, chalkSuccess('yes'));
                     }
