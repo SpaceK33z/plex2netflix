@@ -19,15 +19,15 @@ function exit(err) {
 }
 
 function Plex2Netflix(options) {
-    options = _.extend({}, defaults, options);
+    this.options = _.extend({}, defaults, options);
 
-    this.plexClient = new PlexAPI(_.pick(options, 'hostname', 'port', 'token', 'username', 'password'));
+    this.plexClient = new PlexAPI(_.pick(this.options, 'hostname', 'port', 'token', 'username', 'password'));
 
     this.plexClient.query('/library/sections').then(function (result) {
         console.log('Successfully connected to Plex.');
         var sections = result._children;
         // Try to find the given section.
-        var theSection = _.findWhere(sections, { title: options.librarySection });
+        var theSection = _.findWhere(sections, { title: this.options.librarySection });
 
         // If section can't be found, list all sections and exit.
         if (!theSection) {
@@ -53,7 +53,9 @@ Plex2Netflix.prototype.displaySummary = function (mediaLength, availableCounter)
 }
 
 Plex2Netflix.prototype.getMediaForSection = function (sectionUri) {
-    this.plexClient.query(sectionUri + '/all').then(function (result) {
+    var maybeAddYear = this.options.year ? '?year=' + this.options.year : '';
+
+    this.plexClient.query(sectionUri + '/all' + maybeAddYear).then(function (result) {
         var media = result._children;
         if (!_.isArray(media) || !media.length) {
             exit(new Error('No media found in library section.'));
