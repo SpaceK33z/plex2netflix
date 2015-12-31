@@ -8,11 +8,15 @@ It works by using the Plex Web API to get a list of all media from given library
 
 <img src="./example.png" width="609" alt="Example">
 
-To install, you need to have [Node.js](https://nodejs.org) installed. Install the tool with the node package manager:
+## Install
+
+You need to have [Node.js](https://nodejs.org) installed. Install the tool with the node package manager:
 
 ```
 npm install -g SpaceK33z/plex2netflix
 ```
+
+To update, just run the command above again.
 
 ## Usage
 
