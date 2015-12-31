@@ -26,6 +26,8 @@ First, you need to get your [API token from Plex](https://support.plex.tv/hc/en-
 plex2netflix --host 192.168.0.42 --token=xxx --section=Movies
 ```
 
+Optionally comma-separate the sections like `--section=Movies,Shows`.
+
 If your Plex server lives at a non-default port, you can use `--port`.
 
 Maybe you only want to know if media from this release year is already on Netflix:
