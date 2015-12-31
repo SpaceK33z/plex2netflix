@@ -26,7 +26,7 @@ First, you need to get your [API token from Plex](https://support.plex.tv/hc/en-
 plex2netflix --host 192.168.0.42 --token=xxx --section=Movies
 ```
 
-Optionally comma-separate the sections like `--section=Movies,Shows`.
+Optionally comma-separate the sections like `--section=Movies,Shows`. If you leave out `--section`, it will try to automatically find libraries.
 
 If your Plex server lives at a non-default port, you can use `--port`.
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 var Plex2Netflix = require('./');
 var argv = require('yargs')
-    .demand('section').alias('section', 's').describe('section', 'Comma-separated library section titles from Plex')
+    .string('section').alias('section', 's').describe('section', 'Comma-separated library section titles from Plex')
     .demand('token').alias('token', 't').describe('token', 'API token from Plex')
     .string('host').default('host', '127.0.0.1').describe('host', 'Hostname for Plex Web')
     .default('port', 32400).describe('port', 'Port for Plex Web')
@@ -14,7 +14,7 @@ var argv = require('yargs')
     .argv;
 
 new Plex2Netflix({
-    librarySections: argv.section.split(','),
+    librarySections: argv.section ? argv.section.split(',') : undefined,
     token: argv.token,
     hostname: argv.host,
     port: argv.port,

@@ -10,7 +10,6 @@ var netflixRoulette = require('./apis/netflix-roulette');
 var defaults = {
     hostname: '127.0.0.1',
     port: 32400,
-    librarySections: [],
 };
 
 function exit(err) {
@@ -26,19 +25,12 @@ function Plex2Netflix(options) {
 
     this.plexClient.query('/library/sections').then(function (result) {
         console.log('Successfully connected to Plex.');
-        var sections = result._children;
-        var sectionResults = [];
-        // Try to find all sections.
-        this.options.librarySections.forEach(function (sectionTitle) {
-            var theSection = _.findWhere(sections, { title: sectionTitle });
-            // If section can't be found, list all sections and exit.
-            if (!theSection) {
-                var sectionTitles = _.map(sections, 'title');
-                exit(new Error('Library section "' + sectionTitle + '" not found. Searched in sections: ' + sectionTitles.join(', ')));
-            }
 
-            sectionResults.push(theSection);
-        });
+        if (this.options.librarySections) {
+            var sectionResults = this.findSpecificLibraries(result._children);
+        } else {
+            var sectionResults = this.findAllLibraries(result._children);
+        }
 
         return Promise.map(sectionResults, function (section) {
             console.log(chalkInfo('Searching in ' + section.title + '.'));
@@ -47,6 +39,30 @@ function Plex2Netflix(options) {
             this.displaySummary();
         }.bind(this));
     }.bind(this), exit);
+}
+
+Plex2Netflix.prototype.findSpecificLibraries = function (sections) {
+    var sectionResults = [];
+    // Try to find all sections.
+    this.options.librarySections.forEach(function (sectionTitle) {
+        var theSection = _.findWhere(sections, { title: sectionTitle });
+        // If section can't be found, list all sections and exit.
+        if (!theSection) {
+            var sectionTitles = _.map(sections, 'title');
+            exit(new Error('Library section "' + sectionTitle + '" not found. Searched in sections: ' + sectionTitles.join(', ')));
+        }
+
+        sectionResults.push(theSection);
+    });
+
+    return sectionResults;
+}
+
+Plex2Netflix.prototype.findAllLibraries = function (sections) {
+    // Only include show and movie libraries, and libraries with an agent.
+    return sections.filter(function(section) {
+        return _.includes(['show', 'movie'], section.type) && section.agent !== 'com.plexapp.agents.none';
+    });
 }
 
 Plex2Netflix.prototype.displayMovie = function (item, msg) {
