@@ -2,14 +2,19 @@
   "name": "plex2netflix",
   "version": "0.2.1",
   "description": "See how much of your media from Plex is available on Netflix.",
-  "main": "index.js",
-  "bin": "./cli.js",
+  "main": "lib/index.js",
+  "bin": "lib/cli.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/spacek33z/plex2netflix.git"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "babel src --out-dir lib",
+    "start": "babel --watch",
+    "lint": "eslint src",
+    "preversion": "npm run -s lint",
+    "version": "git add -A lib"
   },
   "author": "Kees Kluskens <kees@webduck.nl>",
   "license": "ISC",
@@ -20,5 +25,16 @@
     "lodash": "3.10.1",
     "plex-api": "3.2.0",
     "yargs": "3.31.0"
+  },
+  "babel": {
+    "presets": [
+      "es2015"
+    ]
+  },
+  "devDependencies": {
+    "babel-cli": "^6.3.17",
+    "babel-preset-es2015": "^6.3.13",
+    "eslint": "^1.10.3",
+    "codeyellow-style": "git+https://bitbucket.org/codeyellow/codeyellow-style.git#v0.2.0"
   }
 }
