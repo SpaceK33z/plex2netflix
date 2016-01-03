@@ -17,28 +17,40 @@ function exit(err) {
     process.exit(1);
 }
 
+function executeSequentially(promiseFactories) {
+    var result = Promise.resolve();
+    promiseFactories.forEach(function (promiseFactory) {
+        result = result.then(promiseFactory);
+    });
+    return result;
+}
+
 function Plex2Netflix(options) {
     this.options = _.extend({}, defaults, options);
     this.summary = { size: 0, available: 0 };
 
     this.plexClient = new PlexAPI(_.pick(this.options, 'hostname', 'port', 'token', 'username', 'password'));
 
-    this.plexClient.query('/library/sections').then(function (result) {
+    this.plexClient.query('/library/sections')
+    .then(function (result) {
         console.log('Successfully connected to Plex.');
 
         if (this.options.librarySections) {
-            var sectionResults = this.findSpecificLibraries(result._children);
-        } else {
-            var sectionResults = this.findAllLibraries(result._children);
+            return this.findSpecificLibraries(result._children);
         }
 
-        return Promise.map(sectionResults, function (section) {
-            console.log(chalkInfo('Searching in ' + section.title + '.'));
-            return this.getMediaForSection(section.uri);
-        }.bind(this)).then(function () {
-            this.displaySummary();
-        }.bind(this));
-    }.bind(this), exit);
+        return this.findAllLibraries(result._children);
+    }.bind(this))
+    .then(function (sections) {
+        return executeSequentially(sections.map(function (section) {
+            return function () {
+                console.log(chalkInfo('Searching in ' + section.title + '.'));
+                return this.getMediaForSection(section.uri);
+            }.bind(this);
+        }.bind(this)));
+    }.bind(this))
+    .then(this.displaySummary.bind(this))
+    .catch(exit);
 }
 
 Plex2Netflix.prototype.findSpecificLibraries = function (sections) {
@@ -105,7 +117,8 @@ Plex2Netflix.prototype.getMediaMetadata = function (mediaUri) {
 Plex2Netflix.prototype.getMediaForSection = function (sectionUri) {
     var maybeAddYear = this.options.year ? '?year=' + this.options.year : '';
 
-    return this.plexClient.query(sectionUri + '/all' + maybeAddYear).then(function (result) {
+    return this.plexClient.query(sectionUri + '/all' + maybeAddYear)
+    .then(function (result) {
         var media = result._children;
         if (!_.isArray(media) || !media.length) {
             exit(new Error('No media found in library section.'));
@@ -115,10 +128,10 @@ Plex2Netflix.prototype.getMediaForSection = function (sectionUri) {
         var availableCounter = 0;
 
         console.log('-------');
-        return Promise.map(media, function (item) {
+        return Promise.all(media.map(function (item) {
             return this.getMediaMetadata(item.key)
                 .then(netflixRoulette)
-                .then(function(isAvailable) {
+                .then(function (isAvailable) {
                     if (isAvailable) {
                         availableCounter += 1;
                         return this.displayMovie(item, chalkSuccess('yes'));
@@ -128,12 +141,13 @@ Plex2Netflix.prototype.getMediaForSection = function (sectionUri) {
                 .catch(function(err) {
                     this.displayMovie(item, chalkError('failed request (code: ' + (err.statusCode || err) + ')'));
                 }.bind(this));
-        }.bind(this)).then(function() {
+        }.bind(this)))
+        .then(function() {
             this.summary.size += media.length;
             this.summary.available += availableCounter;
         }.bind(this));
-
-    }.bind(this), exit);
+    }.bind(this))
+    .catch(exit);
 };
 
 module.exports = Plex2Netflix;
