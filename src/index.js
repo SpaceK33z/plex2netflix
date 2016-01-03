@@ -1,13 +1,14 @@
-var PlexAPI = require('plex-api');
-var _ = require('lodash');
-var Promise = require('bluebird');
-var chalk = require('chalk');
-var chalkError = chalk.bold.red;
-var chalkSuccess = chalk.bold.green;
-var chalkInfo = chalk.bold.blue;
-var netflixRoulette = require('./apis/netflix-roulette');
+import PlexAPI from 'plex-api';
+import _ from 'lodash';
+import Promise from 'bluebird';
+import chalk from 'chalk';
+import netflixRoulette from './apis/netflix-roulette';
 
-var defaults = {
+const chalkError = chalk.bold.red;
+const chalkSuccess = chalk.bold.green;
+const chalkInfo = chalk.bold.blue;
+
+const defaults = {
     hostname: '127.0.0.1',
     port: 32400,
 };
@@ -18,8 +19,8 @@ function exit(err) {
 }
 
 function executeSequentially(promiseFactories) {
-    var result = Promise.resolve();
-    promiseFactories.forEach(function (promiseFactory) {
+    let result = Promise.resolve();
+    promiseFactories.forEach(function(promiseFactory) {
         result = result.then(promiseFactory);
     });
     return result;
@@ -32,7 +33,7 @@ function Plex2Netflix(options) {
     this.plexClient = new PlexAPI(_.pick(this.options, 'hostname', 'port', 'token', 'username', 'password'));
 
     this.plexClient.query('/library/sections')
-    .then(function (result) {
+    .then((result) => {
         console.log('Successfully connected to Plex.');
 
         if (this.options.librarySections) {
@@ -40,27 +41,27 @@ function Plex2Netflix(options) {
         }
 
         return this.findAllLibraries(result._children);
-    }.bind(this))
-    .then(function (sections) {
-        return executeSequentially(sections.map(function (section) {
-            return function () {
+    })
+    .then((sections) => {
+        return executeSequentially(sections.map((section) => {
+            return () => {
                 console.log(chalkInfo('Searching in ' + section.title + '.'));
                 return this.getMediaForSection(section.uri);
-            }.bind(this);
-        }.bind(this)));
-    }.bind(this))
+            };
+        }));
+    })
     .then(this.displaySummary.bind(this))
     .catch(exit);
 }
 
-Plex2Netflix.prototype.findSpecificLibraries = function (sections) {
-    var sectionResults = [];
+Plex2Netflix.prototype.findSpecificLibraries = function(sections) {
+    const sectionResults = [];
     // Try to find all sections.
-    this.options.librarySections.forEach(function (sectionTitle) {
-        var theSection = _.findWhere(sections, { title: sectionTitle });
+    this.options.librarySections.forEach(function(sectionTitle) {
+        const theSection = _.findWhere(sections, { title: sectionTitle });
         // If section can't be found, list all sections and exit.
         if (!theSection) {
-            var sectionTitles = _.map(sections, 'title');
+            const sectionTitles = _.map(sections, 'title');
             exit(new Error('Library section "' + sectionTitle + '" not found. Searched in sections: ' + sectionTitles.join(', ')));
         }
 
@@ -68,36 +69,36 @@ Plex2Netflix.prototype.findSpecificLibraries = function (sections) {
     });
 
     return sectionResults;
-}
+};
 
-Plex2Netflix.prototype.findAllLibraries = function (sections) {
+Plex2Netflix.prototype.findAllLibraries = function(sections) {
     // Only include show and movie libraries, and libraries with an agent.
     return sections.filter(function(section) {
         return _.includes(['show', 'movie'], section.type) && section.agent !== 'com.plexapp.agents.none';
     });
-}
+};
 
-Plex2Netflix.prototype.displayMovie = function (item, msg) {
+Plex2Netflix.prototype.displayMovie = function(item, msg) {
     console.log(item.title + ' (' + item.year + ') - ' + msg);
-}
+};
 
-Plex2Netflix.prototype.displaySummary = function () {
+Plex2Netflix.prototype.displaySummary = function() {
     console.log('-------');
     console.log('Media searched:', chalkInfo(this.summary.size));
     console.log('Media available on netflix:', chalkInfo(this.summary.available));
-    var percent = (this.summary.available / this.summary.size) * 100;
+    const percent = (this.summary.available / this.summary.size) * 100;
     console.log('Percent available on netflix:', chalkInfo((Math.round(percent * 100) / 100) + '%'));
-}
+};
 
-Plex2Netflix.prototype.getMediaMetadata = function (mediaUri) {
-    return this.plexClient.query(mediaUri).then(function (result) {
+Plex2Netflix.prototype.getMediaMetadata = function(mediaUri) {
+    return this.plexClient.query(mediaUri).then((result) => {
         if (result._children && result._children.length) {
-            var firstChild = result._children[0];
+            const firstChild = result._children[0];
             // Try to find the IMDB id in this mess.
             // TODO: Maybe iterate over the children until an IMDb id is found?
-            var guid = firstChild.guid;
+            const guid = firstChild.guid;
             if (guid) {
-                var imdb = guid.match(/tt\d{7}/);
+                const imdb = guid.match(/tt\d{7}/);
                 if (imdb) {
                     return { imdb: imdb[0] };
                 }
@@ -108,45 +109,45 @@ Plex2Netflix.prototype.getMediaMetadata = function (mediaUri) {
             // TODO: The `title` can also contain non-English words. Maybe there is a way to always get the English title?
             return {
                 title: result.parentTitle || firstChild.title,
-                year: result.parentYear || firstChild.year
+                year: result.parentYear || firstChild.year,
             };
         }
     });
-}
+};
 
-Plex2Netflix.prototype.getMediaForSection = function (sectionUri) {
-    var maybeAddYear = this.options.year ? '?year=' + this.options.year : '';
+Plex2Netflix.prototype.getMediaForSection = function(sectionUri) {
+    const maybeAddYear = this.options.year ? '?year=' + this.options.year : '';
 
     return this.plexClient.query(sectionUri + '/all' + maybeAddYear)
-    .then(function (result) {
-        var media = result._children;
+    .then((result) => {
+        const media = result._children;
         if (!_.isArray(media) || !media.length) {
             exit(new Error('No media found in library section.'));
         }
 
         // This counter keeps track of how many media is available on Netflix.
-        var availableCounter = 0;
+        let availableCounter = 0;
 
         console.log('-------');
-        return Promise.all(media.map(function (item) {
+        return Promise.all(media.map((item) => {
             return this.getMediaMetadata(item.key)
                 .then(netflixRoulette)
-                .then(function (isAvailable) {
+                .then((isAvailable) => {
                     if (isAvailable) {
                         availableCounter += 1;
                         return this.displayMovie(item, chalkSuccess('yes'));
                     }
                     this.displayMovie(item, chalkError('nope'));
-                }.bind(this))
-                .catch(function(err) {
+                })
+                .catch((err) => {
                     this.displayMovie(item, chalkError('failed request (code: ' + (err.statusCode || err) + ')'));
-                }.bind(this));
-        }.bind(this)))
-        .then(function() {
+                });
+        }))
+        .then(() => {
             this.summary.size += media.length;
             this.summary.available += availableCounter;
-        }.bind(this));
-    }.bind(this))
+        });
+    })
     .catch(exit);
 };
 
