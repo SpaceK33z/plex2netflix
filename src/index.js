@@ -89,12 +89,12 @@ Plex2Netflix.prototype.getMediaMetadata = function(mediaUri) {
                 imdb = guid.match(/tt\d{7}/);
             }
 
-            // If no match to an IMDb ID can be made, fallback to using the title + year.
             // For TV shows `result.parentTitle` and `result.parentYear` should be used.
-            // TODO: The `title` can also contain non-English words. Maybe there is a way to always get the English title?
+            // For movies, `firstChild.originalTitle` contains the title without translation.
+            // If this is empty, `firstChild.title` should be used.
             return {
                 imdb: imdb ? imdb[0] : null,
-                title: this.filterTitle(result.parentTitle || firstChild.title),
+                title: this.filterTitle(result.parentTitle || firstChild.originalTitle || firstChild.title),
                 year: result.parentYear || firstChild.year,
             };
         }
@@ -121,21 +121,17 @@ Plex2Netflix.prototype.getMediaForSection = function(sectionUri) {
         let availableCounter = 0;
 
         return Promise.all(media.map((item) => {
-            const cleanedItem = {
-                title: this.filterTitle(item.title),
-                year: item.year,
-            };
-
             return this.getMediaMetadata(item.key)
                 .then(netflixRoulette)
-                .then((isAvailable) => {
+                .then((args) => {
+                    const [mediaItem, isAvailable] = args;
                     if (isAvailable) {
                         availableCounter += 1;
-                        return this.options.report.movieAvailable(cleanedItem);
+                        return this.options.report.movieAvailable(mediaItem);
                     }
-                    this.options.report.movieUnavailable(cleanedItem);
+                    this.options.report.movieUnavailable(mediaItem);
                 })
-                .catch((err) => this.options.report.movieError(cleanedItem, err));
+                .catch((args) => this.options.report.movieError(args[0], args[1]));
         }))
         .then(() => {
             this.summary.size += media.length;

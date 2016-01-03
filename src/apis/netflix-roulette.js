@@ -7,27 +7,28 @@ export default function(media) {
         if (media.imdb) {
             return got('https://netflixroulette.net/api/v2/usa/imdb/', { query: { imdbId: media.imdb }, json: true })
                 .then(function(response) {
-                    resolve(response.body.netflix_id || null);
+                    resolve([media, response.body.netflix_id || null]);
                 })
                 .catch(function(err) {
                     // This API sometimes returns an empty response, which returns a lengthy parse error.
                     if (err.name === 'ParseError') {
-                        reject(Error('invalid response'));
+                        reject([media, Error('invalid response')]);
                     }
-                    reject(err);
+                    reject([media, err]);
                 });
         }
 
         // Fallback to using the media title and year.
         return got('https://netflixroulette.net/api/v2/usa/search/', { query: { phrase: media.title, year: media.year }, json: true })
             .then(function(response) {
-                resolve(response.body.netflix_results && response.body.netflix_results.length || null);
+                const isAvailable = response.body.netflix_results && response.body.netflix_results.length || null;
+                resolve([media, isAvailable]);
             })
             .catch(function(err) {
                 if (err.statusCode === 404) {
-                    return resolve(null);
+                    return resolve([media, null]);
                 }
-                reject(err);
+                reject([media, err]);
             });
     });
 }
