@@ -8,6 +8,7 @@ const defaults = {
     hostname: '127.0.0.1',
     port: 32400,
     report: rConsole,
+    showImdb: false,
 };
 
 function exit(err) {
@@ -31,7 +32,7 @@ function Plex2Netflix(options) {
 
     this.plexClient.query('/library/sections')
     .then((result) => {
-        this.options.report.connectSuccess();
+        this.reportOption('connectSuccess');
 
         if (this.options.librarySections) {
             return this.findSpecificLibraries(result._children);
@@ -42,16 +43,20 @@ function Plex2Netflix(options) {
     .then((sections) => {
         return executeSequentially(sections.map((section) => {
             return () => {
-                this.options.report.beforeSearchSection(section);
+                this.reportOption('beforeSearchSection', section);
                 return this.getMediaForSection(section.uri);
             };
         }));
     })
     .then(() => {
-        this.options.report.afterSearch(this.summary);
+        this.reportOption('afterSearch', this.summary);
     })
     .catch(exit);
 }
+
+Plex2Netflix.prototype.reportOption = function(option, ...args) {
+    return this.options.report[option].apply(this, args);
+};
 
 Plex2Netflix.prototype.findSpecificLibraries = function(sections) {
     const sectionResults = [];
@@ -127,11 +132,11 @@ Plex2Netflix.prototype.getMediaForSection = function(sectionUri) {
                     const [mediaItem, isAvailable] = args;
                     if (isAvailable) {
                         availableCounter += 1;
-                        return this.options.report.movieAvailable(mediaItem);
+                        return this.reportOption('movieAvailable', mediaItem);
                     }
-                    this.options.report.movieUnavailable(mediaItem);
+                    this.reportOption('movieUnavailable', mediaItem);
                 })
-                .catch((args) => this.options.report.movieError(args[0], args[1]));
+                .catch((args) => this.reportOption('movieError', args[0], args[1]));
         }))
         .then(() => {
             this.summary.size += media.length;

@@ -5,7 +5,9 @@ const chalkSuccess = chalk.bold.green;
 const chalkInfo = chalk.bold.blue;
 
 function logMovie(item, msg) {
-    console.log(`${item.title} (${item.year}) - ${msg}`);
+    const imdbId = this.options.showImdb ? item.imdb : null;
+    const imdb = imdbId ? `, ${imdbId}` : '';
+    console.log(`${item.title} (${item.year}${imdb}) - ${msg}`);
 }
 
 function divide() {
@@ -28,7 +30,13 @@ export default {
         const percent = (summary.available / summary.size) * 100;
         console.log('Percent available on netflix:', chalkInfo((Math.round(percent * 100) / 100) + '%'));
     },
-    movieAvailable: (item) => logMovie(item, chalkSuccess('yes')),
-    movieUnavailable: (item) => logMovie(item, chalkError('nope')),
-    movieError: (item, err) => logMovie(item, chalkError(`failed request (code: ${err.statusCode || err})`)),
+    movieAvailable(item) {
+        logMovie.call(this, item, chalkSuccess('yes'));
+    },
+    movieUnavailable(item) {
+        logMovie.call(this, item, chalkError('nope'));
+    },
+    movieError(item, err) {
+        logMovie.call(this, item, chalkError(`failed request (code: ${err ? (err.statusCode || err) : 'unknown'})`));
+    },
 };
