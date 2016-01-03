@@ -6,7 +6,7 @@ const chalkInfo = chalk.bold.blue;
 
 function logMovie(item, msg) {
     const imdbId = this.options.showImdb ? item.imdb : null;
-    const imdb = imdbId ? `, ${imdbId}` : '';
+    const imdb = `, ${imdbId ? imdbId : 'no imdb id'}`;
     console.log(`${item.title} (${item.year}${imdb}) - ${msg}`);
 }
 
