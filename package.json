@@ -13,7 +13,7 @@
     "build": "babel src --out-dir lib",
     "watch": "npm run -s build -- --watch",
     "lint": "eslint src && echo 'Linting succeeded.'",
-    "preversion": "npm run -s lint",
+    "preversion": "npm run -s lint && npm run -s build",
     "version": "git add -A lib"
   },
   "author": "Kees Kluskens <kees@webduck.nl>",
