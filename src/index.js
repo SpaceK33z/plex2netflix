@@ -45,7 +45,7 @@ function Plex2Netflix(options) {
     .then((sections) => {
         return executeSequentially(sections.map((section) => {
             return () => {
-                console.log(chalkInfo('Searching in ' + section.title + '.'));
+                console.log(chalkInfo(`Searching in ${section.title}.`));
                 return this.getMediaForSection(section.uri);
             };
         }));
@@ -62,7 +62,7 @@ Plex2Netflix.prototype.findSpecificLibraries = function(sections) {
         // If section can't be found, list all sections and exit.
         if (!theSection) {
             const sectionTitles = _.map(sections, 'title');
-            exit(new Error('Library section "' + sectionTitle + '" not found. Searched in sections: ' + sectionTitles.join(', ')));
+            exit(new Error(`Library section "${sectionTitle}" not found. Searched in sections: ${sectionTitles.join(', ')}`));
         }
 
         sectionResults.push(theSection);
@@ -79,7 +79,7 @@ Plex2Netflix.prototype.findAllLibraries = function(sections) {
 };
 
 Plex2Netflix.prototype.displayMovie = function(item, msg) {
-    console.log(item.title + ' (' + item.year + ') - ' + msg);
+    console.log(`${item.title} (${item.year}) - ${msg}`);
 };
 
 Plex2Netflix.prototype.displaySummary = function() {
@@ -140,7 +140,7 @@ Plex2Netflix.prototype.getMediaForSection = function(sectionUri) {
                     this.displayMovie(item, chalkError('nope'));
                 })
                 .catch((err) => {
-                    this.displayMovie(item, chalkError('failed request (code: ' + (err.statusCode || err) + ')'));
+                    this.displayMovie(item, chalkError(`failed request (code: ${err.statusCode || err})`));
                 });
         }))
         .then(() => {
