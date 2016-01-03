@@ -1,3 +1,12 @@
+# 0.3.0 - 2016-01-03
+## Added
+- `--show-imdb` argument, this will help debug if a match is incorrect. It will show the IMDb ID next to each meda item. If a media item has the correct IMDb ID and the match is incorrect, it is probably the fault of the API, not plex2netflix.
+
+## Changed
+- Improve accuracy somewhat for media without IMDb ID; if the year is in the title. e.g. `The Americans (2013)`, it will filter out the year (`The Americans`).
+- Improvacy accuracy by using `originalTitle` from the Plex API (only for movies); this means that always the original title of the movie is used (not e.g. a translated one).
+- Preparations for custom output reports.
+
 # 0.2.2 - 2016-01-03
 ## Added
 - If no `--section` parameter is given, it will auto detect libraries that have movies or TV shows.
