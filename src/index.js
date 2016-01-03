@@ -1,16 +1,13 @@
 import PlexAPI from 'plex-api';
 import _ from 'lodash';
 import Promise from 'bluebird';
-import chalk from 'chalk';
 import netflixRoulette from './apis/netflix-roulette';
-
-const chalkError = chalk.bold.red;
-const chalkSuccess = chalk.bold.green;
-const chalkInfo = chalk.bold.blue;
+import rConsole from './report/console';
 
 const defaults = {
     hostname: '127.0.0.1',
     port: 32400,
+    report: rConsole,
 };
 
 function exit(err) {
@@ -34,7 +31,7 @@ function Plex2Netflix(options) {
 
     this.plexClient.query('/library/sections')
     .then((result) => {
-        console.log('Successfully connected to Plex.');
+        this.options.report.connectSuccess();
 
         if (this.options.librarySections) {
             return this.findSpecificLibraries(result._children);
@@ -45,12 +42,14 @@ function Plex2Netflix(options) {
     .then((sections) => {
         return executeSequentially(sections.map((section) => {
             return () => {
-                console.log(chalkInfo(`Searching in ${section.title}.`));
+                this.options.report.beforeSearchSection(section);
                 return this.getMediaForSection(section.uri);
             };
         }));
     })
-    .then(this.displaySummary.bind(this))
+    .then(() => {
+        this.options.report.afterSearch(this.summary);
+    })
     .catch(exit);
 }
 
@@ -76,18 +75,6 @@ Plex2Netflix.prototype.findAllLibraries = function(sections) {
     return sections.filter(function(section) {
         return _.includes(['show', 'movie'], section.type) && section.agent !== 'com.plexapp.agents.none';
     });
-};
-
-Plex2Netflix.prototype.displayMovie = function(item, msg) {
-    console.log(`${this.filterTitle(item.title)} (${item.year}) - ${msg}`);
-};
-
-Plex2Netflix.prototype.displaySummary = function() {
-    console.log('-------');
-    console.log('Media searched:', chalkInfo(this.summary.size));
-    console.log('Media available on netflix:', chalkInfo(this.summary.available));
-    const percent = (this.summary.available / this.summary.size) * 100;
-    console.log('Percent available on netflix:', chalkInfo((Math.round(percent * 100) / 100) + '%'));
 };
 
 Plex2Netflix.prototype.getMediaMetadata = function(mediaUri) {
@@ -133,20 +120,22 @@ Plex2Netflix.prototype.getMediaForSection = function(sectionUri) {
         // This counter keeps track of how many media is available on Netflix.
         let availableCounter = 0;
 
-        console.log('-------');
         return Promise.all(media.map((item) => {
+            const cleanedItem = {
+                title: this.filterTitle(item.title),
+                year: item.year,
+            };
+
             return this.getMediaMetadata(item.key)
                 .then(netflixRoulette)
                 .then((isAvailable) => {
                     if (isAvailable) {
                         availableCounter += 1;
-                        return this.displayMovie(item, chalkSuccess('yes'));
+                        return this.options.report.movieAvailable(cleanedItem);
                     }
-                    this.displayMovie(item, chalkError('nope'));
+                    this.options.report.movieUnavailable(cleanedItem);
                 })
-                .catch((err) => {
-                    this.displayMovie(item, chalkError(`failed request (code: ${err.statusCode || err})`));
-                });
+                .catch((err) => this.options.report.movieError(cleanedItem, err));
         }))
         .then(() => {
             this.summary.size += media.length;
