@@ -79,7 +79,7 @@ Plex2Netflix.prototype.findAllLibraries = function(sections) {
 };
 
 Plex2Netflix.prototype.displayMovie = function(item, msg) {
-    console.log(`${item.title} (${item.year}) - ${msg}`);
+    console.log(`${this.filterTitle(item.title)} (${item.year}) - ${msg}`);
 };
 
 Plex2Netflix.prototype.displaySummary = function() {
@@ -108,11 +108,17 @@ Plex2Netflix.prototype.getMediaMetadata = function(mediaUri) {
             // For TV shows `result.parentTitle` and `result.parentYear` should be used.
             // TODO: The `title` can also contain non-English words. Maybe there is a way to always get the English title?
             return {
-                title: result.parentTitle || firstChild.title,
+                title: this.filterTitle(result.parentTitle || firstChild.title),
                 year: result.parentYear || firstChild.year,
             };
         }
     });
+};
+
+Plex2Netflix.prototype.filterTitle = function(title) {
+    // Sometimes a title contains the year at the end, e.g. `The Americans (2013)`.
+    // This needs to be filtered out.
+    return String(title).replace(/\(\d{4}\)$/g, '').trim();
 };
 
 Plex2Netflix.prototype.getMediaForSection = function(sectionUri) {
