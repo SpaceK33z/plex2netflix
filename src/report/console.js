@@ -5,8 +5,10 @@ const chalkSuccess = chalk.bold.green;
 const chalkInfo = chalk.bold.blue;
 
 function logMovie(item, msg) {
-    const imdbId = this.options.showImdb ? item.imdb : null;
-    const imdb = `, ${imdbId ? imdbId : 'no imdb id'}`;
+    let imdb = '';
+    if (this.options.showImdb) {
+        imdb = `, ${item.imdb ? item.imdb : 'no imdb id'}`;
+    }
     console.log(`${item.title} (${item.year}${imdb}) - ${msg}`);
 }
 
