@@ -13,7 +13,7 @@ It works by using the Plex Web API to get a list of all media from given library
 You need to have [Node.js](https://nodejs.org) (4.0 or higher) and [git](https://git-scm.com/downloads) installed. Install the tool with the node package manager:
 
 ```
-npm install -g SpaceK33z/plex2netflix
+npm install -g plex2netflix
 ```
 
 To update, just run the command above again.
