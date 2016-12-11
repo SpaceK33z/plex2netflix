@@ -1,3 +1,7 @@
+# 0.4.0 - 2016-12-11
+## Fixed
+- Only Plex Media Server 1.3.2.3112 or higher is supported now. 
+
 # 0.3.1 - 2015-01-04
 ## Changed
 - Improve accuracy in TV shows. If Plex doesn't provide a IMDb ID, it will now search for the IMDb ID on OMDb. Previously it searched with the Netflix Roulette API, but this was very inaccurate.
