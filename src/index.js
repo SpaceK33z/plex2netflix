@@ -18,7 +18,7 @@ function exit(err) {
 
 function executeSequentially(promiseFactories) {
     let result = Promise.resolve();
-    promiseFactories.forEach(function(promiseFactory) {
+    promiseFactories.forEach((promiseFactory) => {
         result = result.then(promiseFactory);
     });
     return result;
@@ -44,7 +44,7 @@ function Plex2Netflix(options) {
         return executeSequentially(sections.map((section) => {
             return () => {
                 this.reportOption('beforeSearchSection', section);
-                return this.getMediaForSection('/library/sections/' + section.key);
+                return this.getMediaForSection(`/library/sections/${section.key}`);
             };
         }));
     })
@@ -54,14 +54,14 @@ function Plex2Netflix(options) {
     .catch(exit);
 }
 
-Plex2Netflix.prototype.reportOption = function(option, ...args) {
+Plex2Netflix.prototype.reportOption = function (option, ...args) {
     return this.options.report[option].apply(this, args);
 };
 
-Plex2Netflix.prototype.findSpecificLibraries = function(sections) {
+Plex2Netflix.prototype.findSpecificLibraries = function (sections) {
     const sectionResults = [];
     // Try to find all sections.
-    this.options.librarySections.forEach(function(sectionTitle) {
+    this.options.librarySections.forEach((sectionTitle) => {
         const theSection = _.findWhere(sections, { title: sectionTitle });
         // If section can't be found, list all sections and exit.
         if (!theSection) {
@@ -75,14 +75,14 @@ Plex2Netflix.prototype.findSpecificLibraries = function(sections) {
     return sectionResults;
 };
 
-Plex2Netflix.prototype.findAllLibraries = function(sections) {
+Plex2Netflix.prototype.findAllLibraries = function (sections) {
     // Only include show and movie libraries, and libraries with an agent.
-    return sections.filter(function(section) {
+    return sections.filter((section) => {
         return _.includes(['show', 'movie'], section.type) && section.agent !== 'com.plexapp.agents.none';
     });
 };
 
-Plex2Netflix.prototype.getMediaMetadata = function(mediaUri) {
+Plex2Netflix.prototype.getMediaMetadata = function (mediaUri) {
     return this.plexClient.query(mediaUri).then((result) => {
         if (result.MediaContainer.Metadata && result.MediaContainer.Metadata.length) {
             const firstChild = result.MediaContainer.Metadata[0];
@@ -103,19 +103,20 @@ Plex2Netflix.prototype.getMediaMetadata = function(mediaUri) {
                 year: result.MediaContainer.parentYear || firstChild.year,
             };
         }
+        return null;
     });
 };
 
-Plex2Netflix.prototype.filterTitle = function(title) {
+Plex2Netflix.prototype.filterTitle = function (title) {
     // Sometimes a title contains the year at the end, e.g. `The Americans (2013)`.
     // This needs to be filtered out.
     return String(title).replace(/\(\d{4}\)$/g, '').replace('\'', '').trim();
 };
 
-Plex2Netflix.prototype.getMediaForSection = function(sectionUri) {
-    const maybeAddYear = this.options.year ? '?year=' + this.options.year : '';
+Plex2Netflix.prototype.getMediaForSection = function (sectionUri) {
+    const maybeAddYear = this.options.year ? `?year=${this.options.year}` : '';
 
-    return this.plexClient.query(sectionUri + '/all' + maybeAddYear)
+    return this.plexClient.query(`${sectionUri}/all${maybeAddYear}`)
     .then((result) => {
         const media = result.MediaContainer.Metadata;
         if (!_.isArray(media) || !media.length) {
@@ -135,8 +136,9 @@ Plex2Netflix.prototype.getMediaForSection = function(sectionUri) {
                         return this.reportOption('movieAvailable', mediaItem);
                     }
                     this.reportOption('movieUnavailable', mediaItem);
+                    return null;
                 })
-                .catch((args) => this.reportOption('movieError', args[0], args[1]));
+                .catch(args => this.reportOption('movieError', args[0], args[1]));
         }))
         .then(() => {
             this.summary.size += media.length;

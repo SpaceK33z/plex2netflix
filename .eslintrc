@@ -1,4 +1,7 @@
 {
-    "extends": "./node_modules/codeyellow-style/.eslintrc",
-    "root": true
+    "extends": "codeyellow",
+    "root": true,
+    "rules": {
+        "newline-per-chained-call": 0
+    }
 }

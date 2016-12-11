@@ -30,7 +30,7 @@ export default {
         console.log('Media searched:', chalkInfo(summary.size));
         console.log('Media available on netflix:', chalkInfo(summary.available));
         const percent = (summary.available / summary.size) * 100;
-        console.log('Percent available on netflix:', chalkInfo((Math.round(percent * 100) / 100) + '%'));
+        console.log('Percent available on netflix:', chalkInfo(`${Math.round(percent * 100) / 100}%`));
     },
     movieAvailable(item) {
         logMovie.call(this, item, chalkSuccess('yes'));
