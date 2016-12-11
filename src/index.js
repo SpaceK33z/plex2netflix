@@ -35,16 +35,16 @@ function Plex2Netflix(options) {
         this.reportOption('connectSuccess');
 
         if (this.options.librarySections) {
-            return this.findSpecificLibraries(result._children);
+            return this.findSpecificLibraries(result.MediaContainer.Directory);
         }
 
-        return this.findAllLibraries(result._children);
+        return this.findAllLibraries(result.MediaContainer.Directory);
     })
     .then((sections) => {
         return executeSequentially(sections.map((section) => {
             return () => {
                 this.reportOption('beforeSearchSection', section);
-                return this.getMediaForSection(section.uri);
+                return this.getMediaForSection('/library/sections/' + section.key);
             };
         }));
     })
@@ -84,8 +84,8 @@ Plex2Netflix.prototype.findAllLibraries = function(sections) {
 
 Plex2Netflix.prototype.getMediaMetadata = function(mediaUri) {
     return this.plexClient.query(mediaUri).then((result) => {
-        if (result._children && result._children.length) {
-            const firstChild = result._children[0];
+        if (result.MediaContainer.Metadata && result.MediaContainer.Metadata.length) {
+            const firstChild = result.MediaContainer.Metadata[0];
             // Try to find the IMDB id in this mess.
             // TODO: Maybe iterate over the children until an IMDb id is found?
             const guid = firstChild.guid;
@@ -99,8 +99,8 @@ Plex2Netflix.prototype.getMediaMetadata = function(mediaUri) {
             // If this is empty, `firstChild.title` should be used.
             return {
                 imdb: imdb ? imdb[0] : null,
-                title: this.filterTitle(result.parentTitle || firstChild.originalTitle || firstChild.title),
-                year: result.parentYear || firstChild.year,
+                title: this.filterTitle(result.MediaContainer.parentTitle || firstChild.originalTitle || firstChild.title),
+                year: result.MediaContainer.parentYear || firstChild.year,
             };
         }
     });
@@ -109,7 +109,7 @@ Plex2Netflix.prototype.getMediaMetadata = function(mediaUri) {
 Plex2Netflix.prototype.filterTitle = function(title) {
     // Sometimes a title contains the year at the end, e.g. `The Americans (2013)`.
     // This needs to be filtered out.
-    return String(title).replace(/\(\d{4}\)$/g, '').trim();
+    return String(title).replace(/\(\d{4}\)$/g, '').replace('\'', '').trim();
 };
 
 Plex2Netflix.prototype.getMediaForSection = function(sectionUri) {
@@ -117,7 +117,7 @@ Plex2Netflix.prototype.getMediaForSection = function(sectionUri) {
 
     return this.plexClient.query(sectionUri + '/all' + maybeAddYear)
     .then((result) => {
-        const media = result._children;
+        const media = result.MediaContainer.Metadata;
         if (!_.isArray(media) || !media.length) {
             exit(new Error('No media found in library section.'));
         }
