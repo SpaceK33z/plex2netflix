@@ -11,8 +11,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint src && echo 'Linting succeeded.'",
-    "preversion": "npm run -s lint",
-    "version": "git add -A lib"
+    "preversion": "npm run -s lint"
   },
   "author": "Kees Kluskens <kees@webduck.nl>",
   "license": "ISC",
