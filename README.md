@@ -25,8 +25,10 @@ To update, just run the command above again.
 First, you need to get your [API token from Plex](https://support.plex.tv/hc/en-us/articles/204059436-Finding-your-account-token-X-Plex-Token).
 
 ```
-plex2netflix --host 192.168.0.42 --token=xxx --section=Movies
+plex2netflix --host 192.168.0.42 --token=xxx --country=us --section=Movies
 ```
+
+By default it searches the Netflix library of the US. You can specify `--country` to let it search in a Netflix library of a different country. For example, to search in the Netherlands, add `--country=nl`.
 
 Optionally comma-separate the sections like `--section=Movies,Shows`. If you leave out `--section`, it will try to automatically find libraries.
 
