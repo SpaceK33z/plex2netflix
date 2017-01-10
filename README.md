@@ -4,7 +4,9 @@ This simple tool checks how much of your media from Plex is available to watch o
 
 I made this tool because I someday want to make the jump to Netflix, but I want to know beforehand how much of the media I have is available there.
 
-It works by using the Plex Web API to get a list of all media from given library section. If an item has an IMDb ID (you need to enable the IMDb agent for this in Plex), it uses this to search in the [Netflix Roulette API](http://netflixroulette.net/api/). If there is no IMDb ID, the item title and year are used.
+It works by using the Plex Web API to get a list of all media from given library section. If an item has an IMDb ID (you need to enable the IMDb agent for this in Plex), it uses this to search in the [uNoGS](http://unogs.com/) database which has Netflix availability data. If there is no IMDb ID, the item title and year are used.
+
+[**Powered by uNoGS**](http://unogs.com/).
 
 <img src="./example.png" width="609" alt="Example">
 
