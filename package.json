@@ -10,7 +10,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint src && echo 'Linting succeeded.'",
+    "lint": "eslint lib && echo 'Linting succeeded.'",
     "preversion": "npm run -s lint"
   },
   "author": "Kees Kluskens <kees@webduck.nl>",
@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "eslint": "^3.12.0",
-    "eslint-config-codeyellow": "2.0.0"
+    "eslint-config-codeyellow": "2.0.0",
+    "eslint-plugin-node": "^3.0.5"
   }
 }
