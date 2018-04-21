@@ -1,9 +1,8 @@
 {
-    "plugins": ["node"],
-    "extends": ["codeyellow", "plugin:node/recommended"],
-    "root": true,
-    "rules": {
-        "strict": 0,
-        "newline-per-chained-call": 0
-    }
+  "plugins": ["node"],
+  "extends": ["@volst", "plugin:node/recommended"],
+  "root": true,
+  "rules": {
+    "strict": 0
+  }
 }
